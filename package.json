@@ -1,0 +1,32 @@
+{
+  "name": "maya-translator-agent",
+  "version": "1.0.0",
+  "description": "Agente de traducción a lenguas indígenas con OpenAI Realtime API",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "openai",
+    "translation",
+    "maya",
+    "indigenous-languages",
+    "realtime-api"
+  ],
+  "author": "NeoZama Team",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.20.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "ws": "^8.16.0",
+    "cors": "^2.8.5",
+    "openai": "^4.28.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
