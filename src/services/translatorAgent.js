@@ -127,12 +127,33 @@ export class TranslatorAgent {
    */
   async transcribeAudio(audioBuffer, language = 'es') {
     try {
+      // Crear archivo temporal para Whisper
+      const fs = await import('fs');
+      const path = await import('path');
+      const os = await import('os');
+      
+      const tempDir = os.tmpdir();
+      const tempFile = path.join(tempDir, `audio-${Date.now()}.wav`);
+      
+      // Escribir buffer a archivo temporal
+      fs.writeFileSync(tempFile, audioBuffer);
+      
+      // Crear un File-like object
+      const fileStream = fs.createReadStream(tempFile);
+      
       const transcription = await this.openai.audio.transcriptions.create({
-        file: audioBuffer,
+        file: fileStream,
         model: 'whisper-1',
         language: language,
         response_format: 'json'
       });
+
+      // Limpiar archivo temporal
+      try {
+        fs.unlinkSync(tempFile);
+      } catch (e) {
+        // Ignorar error al eliminar
+      }
 
       return transcription.text;
     } catch (error) {
