@@ -181,7 +181,7 @@ Analiza el significado exacto de este texto y tradúcelo de manera precisa a ${t
         model: 'tts-1',
         voice: 'alloy',
         input: truncatedText,
-        response_format: 'opus', // Opus es más comprimido que MP3
+        response_format: 'aac', // AAC es compatible con iOS y comprimido
         speed: 1.0
       });
 
