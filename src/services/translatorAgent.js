@@ -225,13 +225,13 @@ export class TranslatorAgent {
       console.log(`🌐 Translation: "${translation}"`);
 
       console.log('🔊 Step 3: Generating speech...');
-      const audioBuffer = await this.generateSpeech(translation);
+      const outputAudioBuffer = await this.generateSpeech(translation);
       console.log('✅ Speech generated successfully');
 
       return {
         transcript,
         translation,
-        audioBuffer
+        audioBuffer: outputAudioBuffer
       };
     } catch (error) {
       console.error('❌ Error in speech-to-speech pipeline:', error);
