@@ -175,7 +175,7 @@ export class TranslatorAgent {
 
       console.log(`📏 Text length: ${text.length} chars (using ${truncatedText.length})`);
 
-      const mp3 = await this.openai.audio.speech.create({
+      const response = await this.openai.audio.speech.create({
         model: 'tts-1',
         voice: 'alloy',
         input: truncatedText,
@@ -183,12 +183,9 @@ export class TranslatorAgent {
         speed: 1.0
       });
 
-      // Convertir el stream a buffer inmediatamente
-      const chunks = [];
-      for await (const chunk of mp3) {
-        chunks.push(chunk);
-      }
-      const audioBuffer = Buffer.concat(chunks);
+      // Convertir la respuesta a buffer
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBuffer = Buffer.from(arrayBuffer);
       
       // Log del tamaño del audio
       const sizeInKB = (audioBuffer.length / 1024).toFixed(2);
