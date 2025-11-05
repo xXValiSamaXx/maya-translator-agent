@@ -167,14 +167,41 @@ export class TranslatorAgent {
    */
   async generateSpeech(text) {
     try {
+      // Limitar longitud del texto para evitar audios muy grandes
+      const maxTextLength = 500;
+      const truncatedText = text.length > maxTextLength 
+        ? text.substring(0, maxTextLength) 
+        : text;
+
+      console.log(`📏 Text length: ${text.length} chars (using ${truncatedText.length})`);
+
       const mp3 = await this.openai.audio.speech.create({
         model: 'tts-1',
         voice: 'alloy',
-        input: text,
-        response_format: 'mp3'
+        input: truncatedText,
+        response_format: 'opus', // Opus es más comprimido que MP3
+        speed: 1.0
       });
 
-      return mp3;
+      // Convertir el stream a buffer inmediatamente
+      const chunks = [];
+      for await (const chunk of mp3) {
+        chunks.push(chunk);
+      }
+      const audioBuffer = Buffer.concat(chunks);
+      
+      // Log del tamaño del audio
+      const sizeInKB = (audioBuffer.length / 1024).toFixed(2);
+      const sizeInMB = (audioBuffer.length / (1024 * 1024)).toFixed(2);
+      console.log(`🎵 Audio size: ${sizeInKB} KB (${sizeInMB} MB)`);
+
+      // Verificar que el audio no sea demasiado grande (límite de 10MB)
+      const maxSizeInBytes = 10 * 1024 * 1024; // 10 MB
+      if (audioBuffer.length > maxSizeInBytes) {
+        throw new Error(`Audio too large: ${sizeInMB} MB (max 10 MB)`);
+      }
+
+      return audioBuffer;
     } catch (error) {
       console.error('❌ Error generating speech:', error);
       throw error;
@@ -198,12 +225,13 @@ export class TranslatorAgent {
       console.log(`🌐 Translation: "${translation}"`);
 
       console.log('🔊 Step 3: Generating speech...');
-      const audioStream = await this.generateSpeech(translation);
+      const audioBuffer = await this.generateSpeech(translation);
+      console.log('✅ Speech generated successfully');
 
       return {
         transcript,
         translation,
-        audioStream
+        audioBuffer
       };
     } catch (error) {
       console.error('❌ Error in speech-to-speech pipeline:', error);

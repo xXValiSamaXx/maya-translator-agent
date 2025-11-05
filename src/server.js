@@ -7,7 +7,8 @@ import { getAllLanguages, isValidLanguageId } from '../src/config/languages.js';
 const app = express();
 
 app.use(cors({ origin: '*' }));
-app.use(express.json({ limit: '10mb' }));
+// Aumentar límite para audio base64, pero no demasiado para evitar abusos
+app.use(express.json({ limit: '50mb' }));
 
 // Ruta raíz
 app.get('/', (req, res) => {
@@ -56,17 +57,29 @@ app.post('/api/translate-audio', async (req, res) => {
     if (!audio) return res.status(400).json({ success: false, error: 'Audio required' });
     if (!isValidLanguageId(language)) return res.status(400).json({ success: false, error: 'Invalid language' });
 
+    // Log del tamaño del audio de entrada
+    const inputSizeKB = (audio.length * 0.75 / 1024).toFixed(2); // base64 aprox
+    console.log(`📥 Input audio size: ${inputSizeKB} KB`);
+
     const audioBuffer = Buffer.from(audio, 'base64');
     const agent = createTranslatorAgent(process.env.OPENAI_API_KEY);
     agent.setTargetLanguage(language);
     
     const result = await agent.processSpeechToSpeech(audioBuffer, includesTramitesContext);
     
-    const chunks = [];
-    for await (const chunk of result.audioStream) {
-      chunks.push(chunk);
+    // Convertir el buffer de audio a base64
+    const audioBase64 = result.audioBuffer.toString('base64');
+    
+    // Log del tamaño de la respuesta
+    const outputSizeKB = (audioBase64.length * 0.75 / 1024).toFixed(2);
+    const outputSizeMB = (audioBase64.length * 0.75 / (1024 * 1024)).toFixed(2);
+    console.log(`📤 Output audio size: ${outputSizeKB} KB (${outputSizeMB} MB)`);
+
+    // Verificar límite de Vercel (4.5MB para respuesta)
+    const maxResponseSize = 4.5 * 1024 * 1024; // 4.5 MB en bytes
+    if (audioBase64.length > maxResponseSize) {
+      throw new Error(`Response too large: ${outputSizeMB} MB (Vercel limit: 4.5 MB)`);
     }
-    const audioBase64 = Buffer.concat(chunks).toString('base64');
 
     res.json({
       success: true,
@@ -78,6 +91,7 @@ app.post('/api/translate-audio', async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('❌ Error in /api/translate-audio:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
