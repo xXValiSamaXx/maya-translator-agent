@@ -108,10 +108,10 @@ export class TranslatorAgent {
           },
           {
             role: 'user',
-            content: text
+            content: `Traduce este texto al ${this.currentLanguage}: "${text}"`
           }
         ],
-        temperature: 0.7,
+        temperature: 0.3, // Más bajo para traducciones más consistentes
         max_tokens: 500
       });
 
