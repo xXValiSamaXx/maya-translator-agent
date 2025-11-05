@@ -100,7 +100,7 @@ export class TranslatorAgent {
       );
 
       const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4-turbo-preview',
+        model: 'gpt-4o', // Modelo más reciente y preciso
         messages: [
           {
             role: 'system',
@@ -108,10 +108,12 @@ export class TranslatorAgent {
           },
           {
             role: 'user',
-            content: `Traduce este texto al ${this.currentLanguage}: "${text}"`
+            content: `Texto a traducir: "${text}"
+
+Analiza el significado exacto de este texto y tradúcelo de manera precisa a ${this.currentLanguage}. Responde solo con la traducción.`
           }
         ],
-        temperature: 0.3, // Más bajo para traducciones más consistentes
+        temperature: 0.1, // Temperatura muy baja para máxima precisión y consistencia
         max_tokens: 500
       });
 
